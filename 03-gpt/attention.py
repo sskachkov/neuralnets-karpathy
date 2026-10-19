@@ -1,12 +1,13 @@
 import torch
 import torch.nn as nn
 import time
+import math
 from torch.nn import functional as F
 
 batch_size = 256
 block_size = 64
 max_iters = 5000
-eval_interval = 100
+eval_interval = max_iters // 10
 n_embd = 128
 n_head = 4
 n_layer = 6
@@ -19,11 +20,10 @@ device = (
     else 'cpu'
 )
 
-eval_iters = 200
-torch.manual_seed(1337)
+eval_iters = 100
+torch.manual_seed(31337)
 
-# wget https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt
-with open('datasets/input.txt', 'r', encoding='utf-8') as f:
+with open('datasets/shakespeare_complete_untagged.txt', 'r', encoding='utf-8') as f:
     text = f.read()
 
 chars = sorted(list(set(text)))
@@ -44,7 +44,6 @@ val_data = data[n:]
 def get_batch(split):
     data = train_data if split == 'train' else val_data
     ix = torch.randint(len(data) - block_size, (batch_size,))
-#    print(ix)
     x = torch.stack([data[i:i+block_size] for i in ix])
     y = torch.stack([data[i+1:i+block_size+1] for i in ix])
     x, y = x.to(device), y.to(device)
@@ -181,15 +180,16 @@ class GPTLanguageModel(nn.Module):
 
 model = GPTLanguageModel()
 m = model.to(device)
-print(device)
+print("device:", device)
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 t0 = int(round(time.time() * 1000))
 for iter in range(max_iters):
-
     # every once in a while evaluate the loss on train and val sets
-    if iter % eval_interval == 0:
+    if iter % eval_interval == 0 or iter == max_iters - 1:
         losses = estimate_loss()
-        print(f"step {iter}: train loss {losses['train']:.4f}, val loss {losses['val']:.4f}")
+        tr_loss = losses['train']
+        val_loss = losses['val']
+        print(f"step {iter}: train loss {tr_loss:.4f} ({tr_loss / math.log(2):.4f} bpc), val loss {val_loss:.4f} ({val_loss / math.log(2):.4f} bpc)")
 
     # sample a batch of data
     xb, yb = get_batch('train')

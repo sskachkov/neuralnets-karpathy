@@ -11,3 +11,12 @@ wheels/
 
 # macOS
 .DS_Store
+
+# Cached tokenizer artifacts
+*.pkl
+
+# Cached tokenized datasets and tokenizer state
+cache/
+
+#Intellij IDEA project folder
+.idea

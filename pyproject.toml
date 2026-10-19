@@ -3,11 +3,32 @@ name = "zero-to-hero"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "graphviz>=0.21",
     "ipykernel>=7.3.0",
     "matplotlib>=3.11.1",
     "numpy>=2.5.2",
-    "torch>=2.13.0",
+    "regex>=2026.9.3",
+    "torch>=2.13.0; sys_platform != 'linux'",
+    "torch>=2.11.0; sys_platform == 'linux'",
 ]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu126", marker = "sys_platform == 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
